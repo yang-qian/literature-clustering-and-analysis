@@ -39,7 +39,7 @@ from analyze_cluster import *
 method = "mds"
 
 # a pre-determined number of clusters
-num_clusters = 5
+num_clusters = 10
 
 # the min # of docs that contains the word for a word to be considered.
 # i.e. passing 0.2 means the term must be in at least 20% of the document
@@ -143,14 +143,14 @@ df_.to_pickle('pkl/df_after_cluster_%d_%s_%s.pkl' %
 
 
 # ================= cluster analysis ================ #
-cluster_stat = analyze_clusters(df_, num_topics)
-with open('analysis/analyze_%d_%s_%s.txt' % (num_clusters, str(min_per_df)[2:], method), "w+") as fout:
-    fout.write(tabulate(cluster_stat))
-fout.close()
+print ("Now analyzing the clusters...")
+analyze_clusters(df_, num_topics, num_clusters,
+                 'analysis/analyze_%d_%s_%s.txt' % (num_clusters, str(min_per_df)[2:], method))
 
 
 # ================= transform & plot ================ #
 
+print ("Now transforming and plotting...")
 # transform the distance/tfidf matrix to 2D array
 if method == "pca":
     plt = pca_(tfidf_matrix, kmeans)

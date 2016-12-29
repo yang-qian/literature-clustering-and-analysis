@@ -132,7 +132,7 @@ def dendrogram_(data2D, brief):
                labels = brief,
                orientation = 'right',
                leaf_font_size = 5)
-    plt.savefig("viz/scipy_dendro_%s.png" % method, bbox_inches='tight', dpi = dpi)
+    plt.savefig("viz/scipy_dendro.png", bbox_inches='tight', dpi = dpi)
     
     return linkage_matrix
 

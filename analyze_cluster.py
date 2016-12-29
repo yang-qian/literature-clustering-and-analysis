@@ -23,20 +23,23 @@ from gensim import corpora, models, similarities
 from nltk.tag import pos_tag
 
 # ====================== variables ====================== #
-
-#from prettytable import PrettyTable
+# empty dict to store cluster analysis result
+# to be used by analyze_cluster.pu
+global g 
+g = {}
+"""
 global cluster0, cluster1, cluster2, cluster3, cluster4
 
-cluster0 = "===============\n== CLUSTER 1 ==\n===============\n"
-cluster1 = "===============\n== CLUSTER 2 ==\n===============\n"
-cluster2 = "===============\n== CLUSTER 3 ==\n===============\n"
-cluster3 = "===============\n== CLUSTER 4 ==\n===============\n"
-cluster4 = "===============\n== CLUSTER 5 ==\n===============\n"
-
+cluster0 = "=============================\n===== CLUSTER 1 SUMMARY =====\n=============================\n"
+cluster1 = "=============================\n===== CLUSTER 2 SUMMARY =====\n=============================\n"
+cluster2 = "=============================\n===== CLUSTER 3 SUMMARY =====\n=============================\n"
+cluster3 = "=============================\n===== CLUSTER 4 SUMMARY =====\n=============================\n"
+cluster4 = "=============================\n===== CLUSTER 5 SUMMARY =====\n=============================\n"
+"""
 # ================= analysis functions ================= #
 
 def freq_kw(df_):
-    g = globals()
+    global g
     
     # group cluster for aggregation analysis
     grouped = df_["keyword"].groupby(df_['cluster']) 
@@ -63,19 +66,20 @@ def freq_kw(df_):
         
         # count occurances of the non-empty kws
         # save the kw to a sorted tuple list if its occurance > 3
-        freq_kws = ["== {}, {} times;".format(key, value) for key, value in Counter(kws).iteritems()
+        freq_kws = [(key, value) for key, value in Counter(kws).iteritems()
                     if value > 3 and key]
         freq_kws.sort(key=lambda x: x[1], reverse=True)
+        freq_kws = ["== {}, {} times;".format(tup[0], tup[1]) for tup in freq_kws]
         
         # convert to string
         freq_kw_str = "\n".join(map(str, freq_kws[:10]))
         
         # add the kw string to the cluster# 
         targetname = 'cluster{}'.format(cluster)
-        g[targetname] = g[targetname] + "Top Keywords:\n" + freq_kw_str + "\n-----\n"
+        g[targetname] += "Top Keywords:\n" + freq_kw_str + "\n-----\n"
 
 def freq_author(df_):
-    g = globals()
+    global g
     
     # group cluster for aggregation analysis
     grouped = df_["author"].groupby(df_['cluster']) 
@@ -88,20 +92,26 @@ def freq_author(df_):
         
         # count occurances of the author
         # save the name to a sorted tuple list if its occurance > 3
-        freq_authors = ["== {}, {} publications;".format(key, value)
+        """freq_authors = ["== {}, {} publications;".format(key, value)
                         for key, value in Counter(author_list).iteritems()
                         if value > 3]
+        freq_authors.sort(key=lambda x: x[1], reverse=True)"""
+        
+        # sort and reformat the list
+        freq_authors = [(key.replace("%", ","), value) for key, value in Counter(author_list).iteritems()
+                        if value > 3]
         freq_authors.sort(key=lambda x: x[1], reverse=True)
+        freq_authors = ["== {}, {} publications;".format(tup[0], tup[1]) for tup in freq_authors]
         
         freq_author_str = "\n".join(map(str, freq_authors[:10]))
         
         # add the author string to the cluster# 
         targetname = 'cluster{}'.format(cluster)
-        g[targetname] = g[targetname] + "Top Authors:\n" + freq_author_str + "\n-----\n"
+        g[targetname] += "Top Authors:\n" + freq_author_str + "\n-----\n"
 
         
 def histo_yr_by_cluster(df_):
-    g = globals()
+    global g
     
     # earliest year in the df
     min_yr = min(df_["year"])
@@ -124,6 +134,7 @@ def lda_(text_list, num_topics):
     Latent Dirichlet Allocation implementation with Gensim
     input example: abstracts
     """
+    result = ""
     # reference: https://rstudio-pubs-static.s3.amazonaws.com/79360_850b2a69980c4488b1db95987a24867a.html
     
     # list for tokenized documents in loop
@@ -161,11 +172,17 @@ def lda_(text_list, num_topics):
     topics = ldamodel.show_topics(num_topics = num_topics, num_words = 10, formatted = False)
     
     # reformat to a string of topics
-    return "\n".join(map(str, [topic[1] for topic in topics]))
+    for topic in topics:
+        # iterate over tuples (kw str, float)
+        for sub_t in topic[1]:
+            result += "== {} * {:.2f} + ".format(sub_t[0], sub_t[1])
+        result  += ";\n"
+    
+    return result
     
     
 def freq_topic(df_, num_topics):
-    g = globals()
+    global g
     
     # topic modeling with LDA per cluster
     grouped = df_["abstract"].groupby(df_['cluster']) 
@@ -174,25 +191,43 @@ def freq_topic(df_, num_topics):
         freq_topic_str = lda_(group, num_topics)
         
         # add the author string to the cluster# 
-        targetname = 'cluster{}'.format(cluster)
-        g[targetname] = g[targetname] + "Top Topics:\n" + freq_topic_str + "\n-----\n"
+        g['cluster{}'.format(cluster)] += "Top Topics:\n" + freq_topic_str + "\n-----\n"
 
-def analyze_clusters(df_, num_topics):
+def analyze_clusters(df_, num_topics, num_clusters, fout = 'analysis/analysis/analyze_5_1_mds.txt'):
+    # create global var to store analysis results
+    global g
+    
+    for i in np.arange(num_clusters):
+        g["cluster{0}".format(i)] = \
+        "=============================\n===== CLUSTER %d SUMMARY =====\n=============================\n" % i
+    
     freq_kw(df_)
     freq_author(df_)
     freq_topic(df_, num_topics)
+    
+    with open(fout, "w+") as fout:
+    
+        # all doc topic modeling with LDA
+        fout.write("======================================\n===== TOP TOPICS ACROSS CLUSTERS =====\n======================================\n")
+        fout.write(lda_(list(df_['abstract']), 5) + "\n-----\n")
+        
+        # print per-cluster analysis
+        for i in np.arange(num_clusters):
+            fout.write(g["cluster{0}".format(i)])
+    fout.close()
 
 
 # ======================== main ======================== #
 # uncomment this block to run this script seperately
 
-df_ = pd.read_pickle('pkl/df_after_cluster_5_1_mds.pkl')
+"""df_ = pd.read_pickle('pkl/df_after_cluster_5_1_mds.pkl')
 
 analyze_clusters(df_, 5) # number of clusters
 with open('analysis/analyze_5_1_mds.txt', "w+") as fout:
     
     # all doc topic modeling with LDA
-    fout.write("Topic Modeling across Clusters >>\n" + lda_(list(df_['abstract']), 5) + "\n-----\n")
+    fout.write("======================================\n===== TOP TOPICS ACROSS CLUSTERS =====\n======================================\n")
+    fout.write(lda_(list(df_['abstract']), 5) + "\n-----\n")
     
     # print per-cluster analysis
     fout.write(cluster0)
@@ -200,6 +235,6 @@ with open('analysis/analyze_5_1_mds.txt', "w+") as fout:
     fout.write(cluster2)
     fout.write(cluster3)
     fout.write(cluster4)
-fout.close()
+fout.close()"""
 
 
