@@ -18,8 +18,17 @@ to xml for Carrot2 to analyze
 ============================================
 """
 
+from subset import subset_plus
+
+# =========== Parameters =========== #
 dir_ = 'search_results/'
+search_terms = ["machine learning", "ambient intelligence", "intelligent interface", "artificial intelligence"]
+
 test_file = 'refworks_ambient_intelligence_543.txt'
+
+
+# =========== Functions =========== #
+
 
 # dict to paper meta data
 
@@ -113,10 +122,10 @@ def parse_file_to_df(file_):
             sys.stdout.write('.')
 
             # write to df
-
+            
             df_ = df_.append({
                 'query': [this_hit],
-                'year': this_yr,
+                'year': int(this_yr),
                 'title': this_tt,
                 'author': this_author,
                 'url': this_url,
@@ -185,34 +194,51 @@ def drop_dup(dfin):
     return dfout
 
 
+def pickle_df(df_, file_name):
+    # pickle the df_
+    df_.to_pickle("pkl/%s.pkl" % file_name)
+    
+    # save to mega xml files
+    with open('xml/%s.xml' % file_name, 'w+') as f1:
+        f1.write(df_to_xml(df_))
+    f1.close()
+
 ####################################== MAIN ==#####################################
 
 if __name__ == '__main__':
-
+    # uncomment this line to run test file
     # parse_file_to_df(test_file)
-
+    
+    """
+    parse a whole dir of search results
+    into a df, seperate txt files and a pickle of paper meta data
+    """
+    
+    # parse all files in the directory into a df
     parse_dir_to_df(dir_)
-
+    
+    # double check search terms exist in either title or abstract
+    df_ = subset_plus(df_, search_terms)
+    
     # remove duplicates
 
     df_ = drop_dup(df_)
+            
+    print len(df_)
     
-    # pickle the df_
-    df_.to_pickle("pkl/df_before_cluster.pkl")
-
     # save each paper to seperate txt files
 
     for (index, row) in df_.iterrows():
         with open('data/%d.txt' % index, 'w+') as fout:
             fout.write(row['title'] + '\n')
-            fout.write(row['keyword'] + '\n')
+            fout.write(str(row['query']) + '\n')
+            fout.write(str(row['keyword']) + '\n')
+            fout.write(row['url'] + '\n')
+            fout.write(row['venue'] + '\n')
             fout.write(row['abstract'])
         fout.close()
-
-    # save to mega xml files
-
-    with open('xml/before_cluster.xml', 'w+') as f1:
-        f1.write(df_to_xml(df_))
-    f1.close()
+    
+    pickle_df(df_, "df_before_cluster")
+    
     
 

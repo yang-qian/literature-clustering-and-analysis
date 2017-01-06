@@ -36,7 +36,10 @@ from analyze_cluster import *
 
 ####################################== PARAMETERS ==#####################################
 # cluster method to use, "mds" or "pca"
-method = "mds"
+method = "pca"
+
+# words whose frequencies will be counted in each cluster
+search_terms = ["user experience", "usability", "user modeling", "social", "crowd", "crowd-sourcing", "crowdsourcing", "interactive machine learning", "sensing ","sensor", "intelligent environment", "internet of things", "robotic", "embodiment", "agency", "interface adaptation", "automation", "mixed-initiative", "impaired", "wizard of Oz", "framework", "machine learning framework", "architecture", "AI planning", "cognitive", "sense-making", "recommend", "deep learning", "tag"]
 
 # a pre-determined number of clusters
 num_clusters = 10
@@ -144,7 +147,7 @@ df_.to_pickle('pkl/df_after_cluster_%d_%s_%s.pkl' %
 
 # ================= cluster analysis ================ #
 print ("Now analyzing the clusters...")
-analyze_clusters(df_, num_topics, num_clusters,
+analyze_clusters(df_, search_terms, num_topics, num_clusters,
                  'analysis/analyze_%d_%s_%s.txt' % (num_clusters, str(min_per_df)[2:], method))
 
 
@@ -153,24 +156,25 @@ analyze_clusters(df_, num_topics, num_clusters,
 print ("Now transforming and plotting...")
 # transform the distance/tfidf matrix to 2D array
 if method == "pca":
-    plt = pca_(tfidf_matrix, kmeans)
+    plt = pca_(tfidf_matrix, kmeans, num_clusters)
 elif method == "mds":
-    plt = mds_(dist, kmeans)
+    plt = mds_(dist, kmeans, num_clusters)
 plt.savefig('viz/clusters_%d_%s_%s.png' % (num_clusters, str(min_per_df)[2:],
-                                           method), dpi=200)
+                                           method), dpi=150)
 plt.close()
 
 # dendrogram the hierarchical clusters
 # and convert it to json file for d3 use
 
-# get a list of strings, each starts with paper title and its sequence #
+"""# get a list of strings, each starts with paper title and its sequence #
 brief = ['{} -- {} -- {}'.format(*t) for t in zip(df_['title'], np.arange(len(df_)), df_['query'])]
 # Create dictionary for labeling nodes by their IDs and paper names
 id2name = dict(zip(np.arange(len(df_)), brief))
 
 data2D = pd.read_pickle('js/data2D_%s.dat' % method)
 # hierachical clustering using data2D that pca_ or mds_ generated
-linkage_matrix = dendrogram_(data2D, brief) # also plot the dendrogram
+linkage_matrix = dendrogram_(data2D, brief, method) # also plot the dendrogram
 
 # and convert the dendro to json for d3 viz
 dendro_to_json(linkage_matrix, 'js/hierarchical_%s' % method, id2name)
+"""
