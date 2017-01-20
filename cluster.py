@@ -36,13 +36,13 @@ from analyze_cluster import *
 
 ####################################== PARAMETERS ==#####################################
 # cluster method to use, "mds" or "pca"
-method = "pca"
+method = "mds"
 
 # words whose frequencies will be counted in each cluster
 search_terms = ["user experience", "usability", "user modeling", "social", "crowd", "crowd-sourcing", "crowdsourcing", "interactive machine learning", "sensing ","sensor", "intelligent environment", "internet of things", "robotic", "embodiment", "agency", "interface adaptation", "automation", "mixed-initiative", "impaired", "wizard of Oz", "framework", "machine learning framework", "architecture", "AI planning", "cognitive", "sense-making", "recommend", "deep learning", "tag"]
 
 # a pre-determined number of clusters
-num_clusters = 10
+num_clusters = 7
 
 # the min # of docs that contains the word for a word to be considered.
 # i.e. passing 0.2 means the term must be in at least 20% of the document

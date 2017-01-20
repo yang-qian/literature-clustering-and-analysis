@@ -24,6 +24,8 @@ from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models, similarities
 from nltk.tag import pos_tag
 
+import csv
+
 # ====================== variables ====================== #
 # empty dict to store cluster analysis result
 global g 
@@ -45,11 +47,16 @@ def kw_cnt(df_, kw):
     
     # get abstracts in each group
     for cluster, group in grouped:
+        cnt = 0
+        for ab in group:
+            if kw in ab:
+                cnt +=1
         
-        # join all abstracts in the cluster into a str
+        result.extend(["%02d" % cnt])
+        """# join all abstracts in the cluster into a str
         abs_str = ",".join(filter(None, group)).lower()
         
-        result.extend(["%02d" % abs_str.count(kw)])
+        result.extend(["%02d" % abs_str.count(kw)])"""
         
     return pd.Series(result)
 
@@ -239,7 +246,8 @@ def plot_kw_cnt(df_, diemension, kws, yr_range = 1997):
     """
 
     plt.style.use('ggplot')
-    
+    f = open('figure1_by_yr.csv', 'wb')
+    writer = csv.writer(f)
     
     # group cluster for aggregation analysis
     grouped = df_["abstract"].groupby(df_[diemension]) 
@@ -251,16 +259,24 @@ def plot_kw_cnt(df_, diemension, kws, yr_range = 1997):
         for cluster, group in grouped:
             
             if int(cluster) >= yr_range:
-                # join all abstracts in the cluster into a str
-                abs_str = ",".join(filter(None, group)).lower()
+                cnt = 0
+                for ab in group:
+                    if kw in ab:
+                        cnt +=1
 
-                result.append((int(cluster), abs_str.count(kw)))
+                result.append((int(cluster), "%02d" % cnt))
+                
+
+                #result.append((int(cluster), abs_str.count(kw)))
         
+        writer.writerows(result)
+            
         plt.plot(zip(*result)[0], zip(*result)[1])
         
     plt.legend(kws, loc='upper left')
-    plt.xticks(np.arange(1997,2018, 1))
-    plt.show()       
+    plt.xticks(np.arange(1997,2017, 1))
+    plt.show()  
+    f.close()
 
 
 # ===================== main function ===================== #
@@ -307,15 +323,15 @@ def analyze_clusters(df_, search_terms, num_topics, num_clusters, \
 # ======================== main ======================== #
 # uncomment this block to run this script seperately
 
-pkl_str = "10_1_mds"
-search_terms = ["user experience", "usability", "user modeling", "social", "crowd", "crowd-sourcing", "crowdsourcing", "interactive machine learning", "sensing ","sensor", "intelligent environment", "internet of things", "robotic", "embodiment", "agency", "interface adaptation", "automation", "mixed-initiative", "impaired", "wizard of Oz", "framework", "machine learning framework", "architecture", "AI planning", "cognitive", "sense-making", "recommend", "deep learning", "tag"]
-
+pkl_str = "7_1_mds"
+"""search_terms = ["user experience", "usability", "user modeling", "social", "crowd", "crowd-sourcing", "crowdsourcing", "interactive machine learning", "sensing ","sensor", "intelligent environment", "internet of things", "robotic", "embodi", "agency", "interface adaptation", "automation", "mixed-initiative", "impaired", "wizard of oz", "framework", "machine learning framework", "architecture", "AI planning", "cognitive", "sense-making", "recommend", "deep learning", "end-user", "cognitive model", "social robot", "social interaction", "clusters", "document cluster", "text mining", "sentiment analysis", "social network", "search engine", "information retrieval", "emotion", "mood", "natural language processing", "multi-modal", "multi media", "image tagging", "image recognition", "computer vision", "decision", "expert system", "context-aware", "user behaviour", "user input", "quora", "stackoverflow", "crowd computing", "human computation", "information system", "knowledge", "knowledge base", "persuasive", "automation", "adaptation","explaination", "answer", "vote", "social relationaship", "urban","interaction technique", "prediction", "visualiz"]
+"""
 df_ = pd.read_pickle('pkl/df_after_cluster_%s.pkl' % pkl_str)
 num_topics = 5
 num_clusters = int(pkl_str.rsplit('_')[0])
-
-"""analyze_clusters(df_, search_terms, num_topics, num_clusters,
+"""
+analyze_clusters(df_, search_terms, num_topics, num_clusters,
                  'analysis/analyze_%s.txt' % pkl_str)
 """
-UX_terms = ["user experience", "usability", "user modeling", "machine learning"]
+UX_terms = ["user experience", "user", "machine learning"]
 plot_kw_cnt(df_, 'year', UX_terms)

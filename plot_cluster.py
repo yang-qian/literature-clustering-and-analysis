@@ -29,17 +29,29 @@ import pandas as pd
 # =========== transform & plot clusters ============== #
 
 #colors for each cluster when plotting
-cluster_colors = {0: '#2B3A42', # dark cold grey
+cluster_colors = {0: '#BDD4DE',
                   1: '#3F5765',
                   2: '#A1B4BD',
                   3: '#FF530D',# bright orange
                   4: '#ED904A',
-                  5: '#EDDAAB',
+                  5: '#EDB760',
                   6: '#EDD984',
                   7: '#EDB760',
                   8: '#C4C4C4', # light neutral grey
-                  9: '#BDD4DE' 
+                  9: '#2B3A42', # dark cold grey
                  }
+
+#set up cluster names
+cluster_names = {0: 'Family, home, war', 
+                 1: 'AmI, intelligent environment, automation', 
+                 2: 'NLP, crowd', 
+                 3: 'Deep learning, user modeling', 
+                 4: 'Interactive machine learning',
+                 5: 'Robot',
+                 6: 'Intelligent interface', #?
+                 7: 'Recommender, IR and filtering, sensor web', #?
+                 8: 'Cognitive models, IS, knowledge',
+                 9: 'Social network, social tagging'}
 
 # method 1: multidimensional scaling (MDS)
 def mds_(dist, km, num_clusters):
