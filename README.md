@@ -1,11 +1,15 @@
-# literature clustering and analysis
+### literature clustering and analysis
 Academic literature clustering, topic modeling, and analysis algorithm with Python.
 The result of this work is to appear in the following publication:
 
-> Mapping Machine Learning Advances From HCI Research to Reveal Starting Places for Design Innovation
+`Qian Yang, Nikola Banovic, and John Zimmerman. 2018. Mapping Machine Learning Advances from HCI Research to Reveal Starting Places for Design Research. Proceedings of the 2018 CHI Conference on Human Factors in Computing Systems - CHI ’18.`
 
-> April 2018
-
-> DOI 10.1145/3173574.3173704
-
-> Conference: CHI'18 At: Montreal, QC, Canada
+```
+@inproceedings{Yang2018,
+author = {Yang, Qian and Banovic, Nikola and Zimmerman, John},
+isbn = {9781450356206},
+journal = {Proceedings of the 2018 CHI Conference on Human Factors in Computing Systems - CHI '18},
+title = {{Mapping Machine Learning Advances from HCI Research to Reveal Starting Places for Design Research}},
+year = {2018}
+}
+```
